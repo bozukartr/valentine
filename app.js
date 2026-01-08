@@ -223,12 +223,14 @@ async function finalizeSelfAnswers() {
     }));
 
     try {
-        const allDistractors = await generateAllDistractors(batchData);
+        const processedResults = await generateAllDistractors(batchData);
 
         const updates = {};
-        tempAnswers.forEach((ans, i) => {
-            const distractors = (allDistractors[i] || ["ALT 1", "ALT 2"]).map(s => s.toUpperCase());
-            const realUp = ans.toUpperCase();
+        tempAnswers.forEach((_, i) => {
+            const result = processedResults[i] || { corrected: tempAnswers[i], distractors: ["ALT 1", "ALT 2"] };
+            const realUp = result.corrected.toUpperCase();
+            const distractors = result.distractors.map(s => s.toUpperCase());
+
             updates[`rooms/${roomId}/${playerRole}/answers/${i}`] = {
                 real: realUp,
                 options: shuffle([realUp, ...distractors])
@@ -236,12 +238,11 @@ async function finalizeSelfAnswers() {
         });
         await update(ref(db), updates);
 
-        // Set local marker that we are ready for guessing
         localGameState = 'answering';
         checkIfAllAnswered();
     } catch (e) {
         console.error("Finalize Error:", e);
-        Swal.fire('Hata!', 'Şıklar oluşturulurken bir sorun çıktı.', 'error');
+        Swal.fire('Hata!', 'Bağlantı sorunu oluştu.', 'error');
     }
 }
 
@@ -272,6 +273,11 @@ function renderGuessQuestion() {
 
     document.getElementById('guess-question-text').innerText = `${qText}`;
 
+    // Progress for guessing (re-use counter elements)
+    document.getElementById('question-counter').innerText = `${currentQuestionIndex + 1}/5`;
+    const progress = (currentQuestionIndex / 5) * 100;
+    document.querySelector('.progress-fill').style.width = `${progress}%`;
+
     const container = document.getElementById('options-container');
     container.innerHTML = "";
 
@@ -284,8 +290,13 @@ function renderGuessQuestion() {
     });
 }
 
-function submitGuess(chosen, real) {
+async function submitGuess(chosen, real) {
     if (chosen === real) score++;
+
+    // Save guess to firebase for review
+    await update(ref(db, `rooms/${roomId}/${playerRole}/answers/${currentQuestionIndex}`), {
+        myGuess: chosen
+    });
 
     currentQuestionIndex++;
     if (currentQuestionIndex < 5) {
@@ -299,14 +310,16 @@ async function finishGuessingPhase() {
     showView('screen-waiting');
     document.getElementById('waiting-status').innerText = "Sevgilinin tahminlerini bitirmesi bekleniyor...";
 
-    // Set score in Firebase - this will trigger the 'results' check in listenToRoom
     await update(ref(db, `rooms/${roomId}/${playerRole}`), { finalScore: score });
 }
 
 function showFinalResults() {
     showView('screen-results');
-    const myScore = playerRole === 'player1' ? roomData.player1.finalScore : roomData.player2.finalScore;
-    const partnerScore = playerRole === 'player1' ? roomData.player2.finalScore : roomData.player1.finalScore;
+    const myData = playerRole === 'player1' ? roomData.player1 : roomData.player2;
+    const partnerData = playerRole === 'player1' ? roomData.player2 : roomData.player1;
+
+    const myScore = myData.finalScore;
+    const partnerScore = partnerData.finalScore;
 
     document.getElementById('my-final-score').innerText = `${myScore}/5`;
     document.getElementById('partner-final-score').innerText = `${partnerScore}/5`;
@@ -321,6 +334,28 @@ function showFinalResults() {
         else if (totalCompatibility >= 50) text.innerText = "Gayet İyisiniz! ✨";
         else text.innerText = "Biraz Daha Çalışmalısınız! 😅";
     }, 500);
+
+    // Render Review List
+    const reviewList = document.getElementById('review-list');
+    reviewList.innerHTML = "";
+
+    roomData.questions.forEach((qIdx, i) => {
+        const questionText = QUESTION_POOL[qIdx];
+        const pAnswer = partnerData.answers[i];
+        const myGuess = myData.answers[i].myGuess;
+        const isCorrect = myGuess === pAnswer.real;
+
+        const item = document.createElement('div');
+        item.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
+        item.innerHTML = `
+            <span class="q">${questionText}</span>
+            <div class="review-row">
+                <span>Cevabı: <b>${pAnswer.real}</b></span>
+                <span>Tahminin: <b style="color:${isCorrect ? '#34c759' : '#ff3b30'}">${myGuess}</b></span>
+            </div>
+        `;
+        reviewList.appendChild(item);
+    });
 }
 
 function shuffle(array) {

@@ -379,3 +379,79 @@ button:active {
 .view.active .main-card {
     animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Review Section */
+.review-section {
+    text-align: left;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e5e5ea;
+}
+
+.review-section h3 {
+    font-size: 17px;
+    color: var(--ios-text);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.review-item {
+    background: #f2f2f7;
+    padding: 15px;
+    border-radius: 16px;
+    border-left: 4px solid var(--ios-gray);
+}
+
+.review-item.correct {
+    border-left-color: #34c759;
+}
+
+.review-item.wrong {
+    border-left-color: #ff3b30;
+}
+
+.review-item .q {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.review-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.review-row b {
+    color: var(--ios-blue);
+}
+
+.review-row span {
+    color: var(--ios-gray);
+}
+
+/* Custom Scrollbar */
+.review-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.review-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.review-list::-webkit-scrollbar-thumb {
+    background: #d1d1d6;
+    border-radius: 10px;
+}
