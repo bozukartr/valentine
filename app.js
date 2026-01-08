@@ -27,6 +27,7 @@ let currentQuestionIndex = 0;
 let score = 0;
 let roomData = null;
 let tempAnswers = [];
+let localGameState = 'waiting'; // 'waiting', 'answering', 'guessing', 'results'
 
 // View Navigation
 function showView(viewId) {
@@ -130,15 +131,27 @@ function listenToRoom() {
 
         updateLobbyUI();
 
-        if (roomData.status === 'answering' && document.getElementById('screen-room').classList.contains('active')) {
+        // Phase Transition: To Answering
+        if (roomData.status === 'answering' && localGameState === 'waiting') {
+            localGameState = 'answering';
             startAnsweringPhase();
         }
 
-        if (roomData.status === 'guessing' && (document.getElementById('screen-questions').classList.contains('active') || document.getElementById('screen-waiting').classList.contains('active'))) {
+        // Phase Transition: To Guessing
+        if (roomData.status === 'guessing' && localGameState === 'answering') {
+            localGameState = 'guessing';
+            currentQuestionIndex = 0;
             startGuessingPhase();
         }
 
-        if (roomData.status === 'results' && !document.getElementById('screen-results').classList.contains('active')) {
+        // Phase Transition: Verification of Results
+        if (roomData.status === 'guessing' && roomData.player1.finalScore !== undefined && roomData.player2.finalScore !== undefined) {
+            update(ref(db, `rooms/${roomId}`), { status: 'results' });
+        }
+
+        // Phase Transition: To Results
+        if (roomData.status === 'results' && localGameState !== 'results') {
+            localGameState = 'results';
             showFinalResults();
         }
     });
@@ -222,6 +235,9 @@ async function finalizeSelfAnswers() {
             };
         });
         await update(ref(db), updates);
+
+        // Set local marker that we are ready for guessing
+        localGameState = 'answering';
         checkIfAllAnswered();
     } catch (e) {
         console.error("Finalize Error:", e);
@@ -243,7 +259,6 @@ async function checkIfAllAnswered() {
 }
 
 function startGuessingPhase() {
-    currentQuestionIndex = 0;
     showView('screen-guessing');
     renderGuessQuestion();
 }
@@ -284,17 +299,8 @@ async function finishGuessingPhase() {
     showView('screen-waiting');
     document.getElementById('waiting-status').innerText = "Sevgilinin tahminlerini bitirmesi bekleniyor...";
 
+    // Set score in Firebase - this will trigger the 'results' check in listenToRoom
     await update(ref(db, `rooms/${roomId}/${playerRole}`), { finalScore: score });
-
-    const checkResults = () => {
-        onValue(ref(db, `rooms/${roomId}`), (snap) => {
-            const data = snap.val();
-            if (data && data.player1.finalScore !== undefined && data.player2.finalScore !== undefined) {
-                update(ref(db, `rooms/${roomId}`), { status: 'results' });
-            }
-        });
-    };
-    checkResults();
 }
 
 function showFinalResults() {

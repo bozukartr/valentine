@@ -260,19 +260,51 @@ button:active {
 }
 
 /* Options */
-.options-grid {
-    display: grid;
-    gap: 12px;
-    width: 100%;
-}
-
 .option-btn {
     background: white;
     text-align: left;
-    padding: 20px;
+    padding: 16px 20px;
     height: auto;
     justify-content: flex-start;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.option-btn:hover {
+    background: #f8f9ff;
+    border-color: rgba(0, 122, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 122, 255, 0.08);
+}
+
+.option-btn span {
+    background: #f0f0f5;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ios-blue);
+    margin-right: 15px;
+}
+
+.option-btn:active {
+    background: var(--ios-blue);
+    color: white;
+    transform: scale(0.95);
+}
+
+.option-btn:active span {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 /* Results */
