@@ -314,12 +314,20 @@ async function finishGuessingPhase() {
 }
 
 function showFinalResults() {
+    console.log("Rendering Final Results...", roomData);
     showView('screen-results');
+
+    // Safety check for roomData structure
+    if (!roomData || !roomData.player1 || !roomData.player2) {
+        console.error("Critical Room Data missing!");
+        return;
+    }
+
     const myData = playerRole === 'player1' ? roomData.player1 : roomData.player2;
     const partnerData = playerRole === 'player1' ? roomData.player2 : roomData.player1;
 
-    const myScore = myData.finalScore;
-    const partnerScore = partnerData.finalScore;
+    const myScore = myData.finalScore || 0;
+    const partnerScore = partnerData.finalScore || 0;
 
     document.getElementById('my-final-score').innerText = `${myScore}/5`;
     document.getElementById('partner-final-score').innerText = `${partnerScore}/5`;
@@ -329,32 +337,61 @@ function showFinalResults() {
     const text = document.getElementById('compatibility-text');
 
     setTimeout(() => {
-        fill.style.width = `${totalCompatibility}%`;
-        if (totalCompatibility >= 80) text.innerText = "Mükemmel Uyum! ❤️";
-        else if (totalCompatibility >= 50) text.innerText = "Gayet İyisiniz! ✨";
-        else text.innerText = "Biraz Daha Çalışmalısınız! 😅";
+        if (fill) fill.style.width = `${totalCompatibility}%`;
+        if (text) {
+            if (totalCompatibility >= 80) text.innerText = "Mükemmel Uyum! ❤️";
+            else if (totalCompatibility >= 50) text.innerText = "Gayet İyisiniz! ✨";
+            else text.innerText = "Biraz Daha Çalışmalısınız! 😅";
+        }
     }, 500);
 
     // Render Review List
     const reviewList = document.getElementById('review-list');
+    if (!reviewList) return;
     reviewList.innerHTML = "";
 
-    roomData.questions.forEach((qIdx, i) => {
-        const questionText = QUESTION_POOL[qIdx];
-        const pAnswer = partnerData.answers[i];
-        const myGuess = myData.answers[i].myGuess;
-        const isCorrect = myGuess === pAnswer.real;
+    // Questions are the same for both
+    const questions = roomData.questions || [];
 
-        const item = document.createElement('div');
-        item.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
-        item.innerHTML = `
-            <span class="q">${questionText}</span>
-            <div class="review-row">
-                <span>Cevabı: <b>${pAnswer.real}</b></span>
-                <span>Tahminin: <b style="color:${isCorrect ? '#34c759' : '#ff3b30'}">${myGuess}</b></span>
-            </div>
-        `;
-        reviewList.appendChild(item);
+    questions.forEach((qIdx, i) => {
+        const questionText = QUESTION_POOL[qIdx];
+
+        // My Review (How I guessed my partner)
+        const pRealData = partnerData.answers ? partnerData.answers[i] : null;
+        const myGuessData = myData.answers ? myData.answers[i] : null;
+
+        if (pRealData && myGuessData && myGuessData.myGuess) {
+            const isCorrect = myGuessData.myGuess === pRealData.real;
+            const item = document.createElement('div');
+            item.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
+            item.innerHTML = `
+                <span class="q">${questionText}</span>
+                <div class="review-row">
+                    <span><b>Senin Tahminin:</b> ${myGuessData.myGuess}</span>
+                    <span><b>Doğru Cevap:</b> ${pRealData.real}</span>
+                </div>
+            `;
+            reviewList.appendChild(item);
+        }
+
+        // Partner Review (How partner guessed me) - Show as smaller info or second row
+        if (myData.answers && partnerData.answers && partnerData.answers[i].myGuess) {
+            const myReal = myData.answers[i].real;
+            const pGuess = partnerData.answers[i].myGuess;
+            const pIsCorrect = pGuess === myReal;
+
+            const pItem = document.createElement('div');
+            pItem.className = `review-item ${pIsCorrect ? 'correct' : 'wrong'}`;
+            pItem.style.opacity = "0.8"; // Slightly dim to differentiate
+            pItem.style.marginTop = "-8px"; // Connect to previous item visually
+            pItem.innerHTML = `
+                <div class="review-row">
+                    <span><b>Sevgilinin Tahmini:</b> ${pGuess}</span>
+                    <span><b>Senin Cevabın:</b> ${myReal}</span>
+                </div>
+            `;
+            reviewList.appendChild(pItem);
+        }
     });
 }
 
