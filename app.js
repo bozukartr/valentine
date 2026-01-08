@@ -350,48 +350,37 @@ function showFinalResults() {
     if (!reviewList) return;
     reviewList.innerHTML = "";
 
-    // Questions are the same for both
-    const questions = roomData.questions || [];
-
-    questions.forEach((qIdx, i) => {
+    roomData.questions.forEach((qIdx, i) => {
         const questionText = QUESTION_POOL[qIdx];
 
-        // My Review (How I guessed my partner)
-        const pRealData = partnerData.answers ? partnerData.answers[i] : null;
-        const myGuessData = myData.answers ? myData.answers[i] : null;
+        // My side: I guessed partner
+        const pAnswer = partnerData.answers ? partnerData.answers[i] : null;
+        const myGuess = myData.answers ? myData.answers[i].myGuess : null;
+        const myCorrect = myGuess === pAnswer?.real;
 
-        if (pRealData && myGuessData && myGuessData.myGuess) {
-            const isCorrect = myGuessData.myGuess === pRealData.real;
-            const item = document.createElement('div');
-            item.className = `review-item ${isCorrect ? 'correct' : 'wrong'}`;
-            item.innerHTML = `
-                <span class="q">${questionText}</span>
-                <div class="review-row">
-                    <span><b>Senin Tahminin:</b> ${myGuessData.myGuess}</span>
-                    <span><b>Doğru Cevap:</b> ${pRealData.real}</span>
+        // Partner side: Partner guessed me
+        const myAnswer = myData.answers ? myData.answers[i] : null;
+        const pGuess = partnerData.answers ? partnerData.answers[i].myGuess : null;
+        const pCorrect = pGuess === myAnswer?.real;
+
+        const item = document.createElement('div');
+        item.className = 'review-item';
+        item.innerHTML = `
+            <span class="q">${questionText}</span>
+            <div class="review-data">
+                <div class="review-box ${myCorrect ? 'correct' : 'wrong'}">
+                    <span class="label">Senin Tahminin</span>
+                    <span class="val">${myGuess || '-'}</span>
+                    <small>Sevgilinin Cevabı: ${pAnswer?.real || '-'}</small>
                 </div>
-            `;
-            reviewList.appendChild(item);
-        }
-
-        // Partner Review (How partner guessed me) - Show as smaller info or second row
-        if (myData.answers && partnerData.answers && partnerData.answers[i].myGuess) {
-            const myReal = myData.answers[i].real;
-            const pGuess = partnerData.answers[i].myGuess;
-            const pIsCorrect = pGuess === myReal;
-
-            const pItem = document.createElement('div');
-            pItem.className = `review-item ${pIsCorrect ? 'correct' : 'wrong'}`;
-            pItem.style.opacity = "0.8"; // Slightly dim to differentiate
-            pItem.style.marginTop = "-8px"; // Connect to previous item visually
-            pItem.innerHTML = `
-                <div class="review-row">
-                    <span><b>Sevgilinin Tahmini:</b> ${pGuess}</span>
-                    <span><b>Senin Cevabın:</b> ${myReal}</span>
+                <div class="review-box ${pCorrect ? 'correct' : 'wrong'}">
+                    <span class="label">Sevgilinin Tahmini</span>
+                    <span class="val">${pGuess || '-'}</span>
+                    <small>Senin Cevabı: ${myAnswer?.real || '-'}</small>
                 </div>
-            `;
-            reviewList.appendChild(pItem);
-        }
+            </div>
+        `;
+        reviewList.appendChild(item);
     });
 }
 
