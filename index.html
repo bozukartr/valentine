@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sevgilimi Ne Kadar Tanıyorum?</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="app.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Views -->
+
+        <!-- Welcome Screen -->
+        <section id="screen-welcome" class="view active">
+            <div class="ios-content">
+                <div class="main-card">
+                    <div class="icon-circle">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h1>Sevgilimi Ne Kadar Tanıyorum?</h1>
+                    <p>Bakalım birbirinizi ne kadar iyi tanıyorsunuz?</p>
+                    <div class="button-group">
+                        <button id="btn-create-room" class="btn-primary">
+                            <i class="fas fa-plus-circle"></i> Oda Oluştur
+                        </button>
+                        <button id="btn-join-room" class="btn-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Odaya Katıl
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Room Screen -->
+        <section id="screen-room" class="view">
+            <div class="ios-content">
+                <div class="main-card compact">
+                    <button class="btn-back"><i class="fas fa-chevron-left"></i></button>
+                    <div class="header-group">
+                        <span class="badge">Lobby</span>
+                        <h1>Oda Bekleme Salonu</h1>
+                        <div class="room-code-box">
+                            <small>ODA KODU</small>
+                            <h2 id="display-room-code">----</h2>
+                        </div>
+                    </div>
+                    <div class="players-list">
+                        <div id="player-1" class="player-slot empty">
+                            <i class="fas fa-user-circle"></i> <span>Oyuncu 1 Bekleniyor...</span>
+                        </div>
+                        <div id="player-2" class="player-slot empty">
+                            <i class="fas fa-user-circle"></i> <span>Oyuncu 2 Bekleniyor...</span>
+                        </div>
+                    </div>
+                    <button id="btn-start-game" class="btn-primary disabled" disabled>
+                        <i class="fas fa-play"></i> Oyunu Başlat
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Question Input Screen -->
+        <section id="screen-questions" class="view">
+            <div class="ios-content">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <span id="question-counter">1/5</span>
+                </div>
+                <div class="main-card">
+                    <div class="question-header">
+                        <i class="fas fa-pen-fancy"></i>
+                        <h2 id="current-question-text">Sorun Yükleniyor...</h2>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="text" id="answer-input" placeholder="Cevabını buraya yaz..." autocomplete="off">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <button id="btn-next-question" class="btn-primary">
+                        <span>Sıradaki Soru</span> <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Waiting Screen -->
+        <section id="screen-waiting" class="view">
+            <div class="ios-content">
+                <div class="loading-container">
+                    <div class="heart-pulse">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h2 id="waiting-status">Sevgilin cevaplıyor...</h2>
+                    <p>Lütfen bekleyin...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Guessing Screen -->
+        <section id="screen-guessing" class="view">
+            <div class="ios-content">
+                <div class="main-card compact">
+                    <div class="header-group">
+                        <span class="tag">TAHMİN ET</span>
+                        <h2 id="guess-question-text">Cevabı bulabilir misin?</h2>
+                    </div>
+                    <div id="options-container" class="options-grid">
+                        <!-- Options filled via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Screen -->
+        <section id="screen-results" class="view">
+            <div class="ios-content">
+                <div class="main-card">
+                    <div class="confetti-icon">🎉</div>
+                    <h1>Oyun Bitti!</h1>
+                    <div class="results-grid">
+                        <div class="score-box">
+                            <small>SENİN SKORUN</small>
+                            <h2 id="my-final-score">0/5</h2>
+                        </div>
+                        <div class="score-box">
+                            <small>SEVGİLİNİN SKORU</small>
+                            <h2 id="partner-final-score">0/5</h2>
+                        </div>
+                    </div>
+                    <div class="compatibility-meter">
+                        <div class="meter-bar">
+                            <div id="compatibility-fill" style="width: 0%"></div>
+                        </div>
+                        <p id="compatibility-text">Uyumunuz Hesaplanıyor...</p>
+                    </div>
+                    <button id="btn-restart" class="btn-secondary">
+                        <i class="fas fa-redo"></i> Tekrar Oyna
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>
